@@ -15,7 +15,7 @@ fun parseChordName(name: String): Pair<Int, ChordType>? {
     return root.first to type
 }
 
-fun voicingToPitchClasses(voicing: ChordVoicing, tuning: Tuning): Set<Int> {
+fun voicingToPitchClasses(voicing: ChordVoicing, tuning: Tuning = Tuning.Standard): Set<Int> {
     val result = mutableSetOf<Int>()
     voicing.notes.forEachIndexed { stringIndex, note ->
         val fret = note.fretOrNull() ?: return@forEachIndexed
@@ -24,14 +24,14 @@ fun voicingToPitchClasses(voicing: ChordVoicing, tuning: Tuning): Set<Int> {
     return result
 }
 
-fun voicingToNoteNames(voicing: ChordVoicing, tuning: Tuning): List<String?> {
+fun voicingToNoteNames(voicing: ChordVoicing, tuning: Tuning = Tuning.Standard): List<String?> {
     return voicing.notes.mapIndexed { stringIndex, note ->
         val fret = note.fretOrNull() ?: return@mapIndexed null
         (tuning.pitchClasses[stringIndex] + fret).toNoteName()
     }
 }
 
-fun nameChord(voicing: ChordVoicing, tuning: Tuning): List<String> {
+fun nameChord(voicing: ChordVoicing, tuning: Tuning = Tuning.Standard): List<String> {
     val notes = voicing.notes
     val sounded = notes.mapIndexedNotNull { index, note ->
         val fret = note.fretOrNull() ?: return@mapIndexedNotNull null
@@ -66,7 +66,7 @@ fun nameChord(voicing: ChordVoicing, tuning: Tuning): List<String> {
 fun generateVoicings(
     rootPc: Int,
     type: ChordType,
-    tuning: Tuning,
+    tuning: Tuning = Tuning.Standard,
     maxFret: Int = 12,
     maxSpan: Int = 4
 ): List<ChordVoicing> {
@@ -178,7 +178,7 @@ private inline fun <T> List<T>.countIndexed(predicate: (index: Int, item: T) -> 
     return count
 }
 
-fun commonVoicings(name: String, tuning: Tuning): List<ChordVoicing> {
+fun commonVoicings(name: String, tuning: Tuning = Tuning.Standard): List<ChordVoicing> {
     val parsed = parseChordName(name)
 
     // 内置常用按法只在标准调弦下直接使用，避免非标准调弦下音高错误

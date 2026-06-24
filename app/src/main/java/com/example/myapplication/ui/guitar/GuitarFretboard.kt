@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.guitar
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -71,6 +73,8 @@ import com.example.myapplication.ui.guitar.chord.commonVoicings
 import com.example.myapplication.ui.guitar.chord.nameChord
 import com.example.myapplication.ui.guitar.chord.parseChordName
 import com.example.myapplication.ui.guitar.chord.toNoteName
+import com.example.myapplication.ui.theme.CardBackground
+import com.example.myapplication.ui.theme.CardText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -251,6 +255,17 @@ fun GuitarFretboardScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(
+                Brush.radialGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                        MaterialTheme.colorScheme.background
+                    ),
+                    center = Offset(0.5f, 0.35f),
+                    radius = 1.1f
+                )
+            )
+            .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -279,8 +294,8 @@ fun GuitarFretboardScreen(
                         modifier = Modifier.height(2.dp),
                         thumbTrackGapSize = 0.dp,
                         colors = SliderDefaults.colors(
-                            inactiveTrackColor = Color(0xFF37474F),
-                            activeTrackColor = Color(0xFFB0BEC5)
+                            inactiveTrackColor = MaterialTheme.colorScheme.outline,
+                            activeTrackColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                 },
@@ -325,7 +340,7 @@ fun GuitarFretboardScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
+                containerColor = CardBackground
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
@@ -336,7 +351,7 @@ fun GuitarFretboardScreen(
                 Text(
                     text = noteName,
                     style = MaterialTheme.typography.displayLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 if (!isChordMode && selectedString != -1 && selectedFret != -1) {
@@ -344,7 +359,7 @@ fun GuitarFretboardScreen(
                     Text(
                         text = "第 ${selectedString + 1} 弦 · 第 ${selectedFret} 品",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        color = CardText.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -403,6 +418,8 @@ fun GuitarFretboard(
     startFret: Float = 0f,
     endFret: Float = FretCount.toFloat(),
     chordNotes: List<ChordNote> = List(6) { ChordNote.Muted },
+    showNoteNames: Boolean = true,
+    highlightColorOverride: Color? = null,
     vibratingNotes: List<Pair<Int, Int>> = emptyList(),
     vibrationTrigger: Int = 0,
     onFretTapped: (stringIndex: Int, fretIndex: Int) -> Unit,
@@ -536,6 +553,8 @@ fun GuitarFretboard(
             startFret = startFret,
             endFret = endFret,
             highlightColor = highlightColor,
+            highlightColorOverride = highlightColorOverride,
+            showNoteNames = showNoteNames,
             canvasWidth = canvasWidth,
             canvasHeight = canvasHeight
         )
@@ -914,6 +933,8 @@ private fun DrawScope.drawChordHighlights(
     startFret: Float,
     endFret: Float,
     highlightColor: Color,
+    highlightColorOverride: Color?,
+    showNoteNames: Boolean,
     canvasWidth: Float,
     canvasHeight: Float
 ) {
@@ -944,7 +965,8 @@ private fun DrawScope.drawChordHighlights(
         val clampedX = centerX.coerceIn(radius, canvasWidth - radius)
 
         val noteName = (tuning.pitchClasses[stringIndex] + fret).toNoteName()
-        val noteColor = (NoteColors[noteName] ?: highlightColor).copy(alpha = alpha)
+        val noteColor = highlightColorOverride?.copy(alpha = alpha)
+            ?: (NoteColors[noteName] ?: highlightColor).copy(alpha = alpha)
 
         textPaint.alpha = (255 * alpha).toInt()
 
@@ -960,15 +982,17 @@ private fun DrawScope.drawChordHighlights(
             style = Stroke(width = 2f)
         )
 
-        val textBounds = android.graphics.Rect()
-        textPaint.getTextBounds(noteName, 0, noteName.length, textBounds)
-        val textOffset = -(textBounds.top + textBounds.bottom) / 2f
-        drawContext.canvas.nativeCanvas.drawText(
-            noteName,
-            clampedX,
-            centerY + textOffset,
-            textPaint
-        )
+        if (showNoteNames) {
+            val textBounds = android.graphics.Rect()
+            textPaint.getTextBounds(noteName, 0, noteName.length, textBounds)
+            val textOffset = -(textBounds.top + textBounds.bottom) / 2f
+            drawContext.canvas.nativeCanvas.drawText(
+                noteName,
+                clampedX,
+                centerY + textOffset,
+                textPaint
+            )
+        }
     }
 }
 
