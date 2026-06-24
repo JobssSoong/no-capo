@@ -73,9 +73,9 @@ fun difficultyDescription(mode: TrainingMode, difficulty: Difficulty): String {
             Difficulty.Hard -> "0–12 品，所有和弦"
         }
         TrainingMode.IntervalRecognition -> when (difficulty) {
-            Difficulty.Easy -> "同一弦 0–5 品，只显示一个音"
-            Difficulty.Medium -> "0–12 品，自然音，不显示音名"
-            Difficulty.Hard -> "0–12 品，含升降号，不显示音名"
+            Difficulty.Easy -> "跨 2 根弦，0–5 品，自然音"
+            Difficulty.Medium -> "跨 2–3 根弦，0–12 品，自然音"
+            Difficulty.Hard -> "任意弦，0–12 品，含升降号"
         }
         TrainingMode.EarTraining -> when (difficulty) {
             Difficulty.Easy -> "0–5 品，自然音"

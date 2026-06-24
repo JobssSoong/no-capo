@@ -231,11 +231,14 @@ fun generateIntervalRecognitionQuestion(
         val pc1 = (tuning.pitchClasses[string1] + fret1) % 12
         if (pc1 !in allowed) return@repeat
 
-        val string2 = if (difficulty == Difficulty.Easy) {
-            string1
-        } else {
-            random.nextInt(6)
+        val allowedStringDistances = when (difficulty) {
+            Difficulty.Easy -> setOf(1)
+            Difficulty.Medium -> setOf(1, 2)
+            Difficulty.Hard -> (1..5).toSet()
         }
+        val possibleString2 = (0..5).filter { kotlin.math.abs(it - string1) in allowedStringDistances }
+        if (possibleString2.isEmpty()) return@repeat
+        val string2 = possibleString2.random(random)
         val minFret2 = if (difficulty == Difficulty.Easy) 1 else fretRange.first
         val fret2 = random.nextInt(minFret2, fretRange.last + 1)
         val pc2 = (tuning.pitchClasses[string2] + fret2) % 12

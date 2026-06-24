@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -107,27 +108,60 @@ fun AnswerOptionsGrid(
     onOptionSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    columns: Int = 4
+    columns: Int = 4,
+    selectedOption: String? = null,
+    correctOption: String? = null,
+    showFeedback: Boolean = false,
+    onNext: () -> Unit = {}
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(vertical = 4.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(options) { option ->
-            OutlinedButton(
-                onClick = { onOptionSelected(option) },
-                enabled = enabled,
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.aspectRatio(2f)
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(columns),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(vertical = 4.dp)
+        ) {
+            items(options) { option ->
+                val isSelected = option == selectedOption
+                val isCorrect = option == correctOption
+                val feedbackColor = when {
+                    showFeedback && isSelected && isCorrect -> Color(0xFF43A047)
+                    showFeedback && isSelected && !isCorrect -> Color(0xFFE53935)
+                    showFeedback && isCorrect -> Color(0xFF43A047)
+                    else -> Color.Transparent
+                }
+                val contentColor = if (showFeedback && (isSelected || isCorrect)) Color.White else MaterialTheme.colorScheme.primary
+                OutlinedButton(
+                    onClick = { onOptionSelected(option) },
+                    enabled = enabled && !showFeedback,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.aspectRatio(2f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = feedbackColor,
+                        contentColor = contentColor,
+                        disabledContainerColor = feedbackColor,
+                        disabledContentColor = contentColor
+                    )
+                ) {
+                    Text(
+                        text = option,
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+
+        if (showFeedback) {
+            Button(
+                onClick = onNext,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = option,
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center
-                )
+                Text("下一题")
             }
         }
     }
@@ -165,7 +199,8 @@ fun AnswerFeedbackOverlay(
     isCorrect: Boolean,
     visible: Boolean,
     modifier: Modifier = Modifier,
-    onAnimationEnd: () -> Unit = {}
+    correctAnswerText: String? = null,
+    onNext: () -> Unit = {}
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -183,20 +218,33 @@ fun AnswerFeedbackOverlay(
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
-                Text(
-                    text = if (isCorrect) "正确" else "错误",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = Color.White,
-                    modifier = Modifier.padding(horizontal = 48.dp, vertical = 24.dp)
-                )
+                Column(
+                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = if (isCorrect) "正确" else "错误",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = Color.White
+                    )
+                    if (!isCorrect && correctAnswerText != null) {
+                        Text(
+                            text = "正确答案：$correctAnswerText",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White
+                        )
+                        OutlinedButton(
+                            onClick = onNext,
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color.White
+                            )
+                        ) {
+                            Text("下一题", color = Color(0xFFE53935))
+                        }
+                    }
+                }
             }
-        }
-    }
-
-    LaunchedEffect(visible) {
-        if (visible) {
-            delay(400)
-            onAnimationEnd()
         }
     }
 }

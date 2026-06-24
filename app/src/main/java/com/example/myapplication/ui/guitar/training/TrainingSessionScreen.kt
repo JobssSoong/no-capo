@@ -72,6 +72,7 @@ import com.example.myapplication.ui.guitar.training.components.CelebrationOverla
 import com.example.myapplication.ui.guitar.training.components.FretboardQuestionView
 import com.example.myapplication.ui.guitar.training.components.TimerDisplay
 import com.example.myapplication.ui.guitar.training.engine.generateQuestion
+import com.example.myapplication.ui.guitar.training.engine.intervalName
 import com.example.myapplication.ui.guitar.training.engine.toDisplayName
 import com.example.myapplication.ui.theme.CardBackground
 import com.example.myapplication.ui.theme.CardText
@@ -161,7 +162,9 @@ fun TrainingSessionScreen(
     LaunchedEffect(Unit) {
         while (!isFinished) {
             delay(1000)
-            elapsedSeconds++
+            if (!showFeedback) {
+                elapsedSeconds++
+            }
         }
     }
 
@@ -205,6 +208,13 @@ fun TrainingSessionScreen(
                 delay(1800)
                 showCelebration = false
             }
+        }
+    }
+
+    LaunchedEffect(showFeedback, feedbackCorrect, question) {
+        if (showFeedback && feedbackCorrect && question?.isInteractive() == true) {
+            delay(800)
+            advance()
         }
     }
 
@@ -345,7 +355,11 @@ fun TrainingSessionScreen(
                                 submitAnswer()
                             },
                             enabled = !showFeedback,
-                            columns = if (options.size <= 4) 2 else 4
+                            columns = if (options.size <= 4) 2 else 4,
+                            selectedOption = selectedOption,
+                            correctOption = if (showFeedback) correctAnswerText(question, settings) else null,
+                            showFeedback = showFeedback,
+                            onNext = { advance() }
                         )
                     }
 
@@ -362,11 +376,14 @@ fun TrainingSessionScreen(
                 )
             }
 
-            AnswerFeedbackOverlay(
-                isCorrect = feedbackCorrect,
-                visible = showFeedback,
-                onAnimationEnd = { advance() }
-            )
+            if (question == null || question.isInteractive()) {
+                AnswerFeedbackOverlay(
+                    isCorrect = feedbackCorrect,
+                    visible = showFeedback,
+                    correctAnswerText = if (question != null) correctAnswerText(question, settings) else null,
+                    onNext = { advance() }
+                )
+            }
 
             CelebrationOverlay(
                 visible = showCelebration,
@@ -532,10 +549,7 @@ private fun TrainingQuestion.toDisplayNotes(settings: TrainingSettings): List<Ch
         is ChordRecognitionQuestion -> voicing.notes
 
         is IntervalRecognitionQuestion -> List<ChordNote>(6) { ChordNote.Muted }.toMutableList().apply {
-            val showBoth = settings.difficultyFor(TrainingMode.IntervalRecognition) != Difficulty.Easy
-            if (showBoth) {
-                this[lowerString] = if (lowerFret == 0) ChordNote.Open else ChordNote.Fretted(lowerFret)
-            }
+            this[lowerString] = if (lowerFret == 0) ChordNote.Open else ChordNote.Fretted(lowerFret)
             this[upperString] = if (upperFret == 0) ChordNote.Open else ChordNote.Fretted(upperFret)
         }
 
@@ -566,17 +580,26 @@ private fun questionPrompt(question: TrainingQuestion, settings: TrainingSetting
         is FindNoteQuestion -> "在 第 ${question.stringIndex + 1} 弦 上找到 ${question.pitchClass.toDisplayName(settings)}"
         is ChordRecognitionQuestion -> "这个和弦是什么？"
         is MarkChordQuestion -> "在 ${question.positionStart}–${question.positionEnd} 品之间按出 ${question.chordName}"
-        is IntervalRecognitionQuestion -> if (settings.difficultyFor(TrainingMode.IntervalRecognition) == Difficulty.Easy) {
-            "第 ${question.upperString + 1} 弦上这个音到空弦音的音程是？"
-        } else {
-            "这两个音的音程是？"
-        }
+        is IntervalRecognitionQuestion -> "这两个音的音程是？"
         is EarTrainingQuestion -> "听音后，在指板上点出这个音的位置"
         is ScaleFindNotesQuestion -> "在 ${question.startFret}–${question.endFret} 品内，标出 ${question.keyRoot.toDisplayName(settings)} ${question.scaleType.suffix} 的所有音"
         is ChordProgressionQuestion -> {
             val progressionText = question.progression.map { it.first }.joinToString(" – ")
             "${question.keyRoot.toDisplayName(settings)} 大调：${progressionText} 中的第 ${question.chordIndex + 1} 个和弦"
         }
+    }
+}
+
+private fun correctAnswerText(question: TrainingQuestion, settings: TrainingSettings): String {
+    return when (question) {
+        is NoteRecognitionQuestion -> question.pitchClass.toDisplayName(settings)
+        is FindNoteQuestion -> "第 ${question.stringIndex + 1} 弦 第 ${question.correctFret} 品"
+        is ChordRecognitionQuestion -> question.correctName
+        is MarkChordQuestion -> question.chordName
+        is IntervalRecognitionQuestion -> intervalName(question.intervalSemitones)
+        is EarTrainingQuestion -> "${question.pitchClass.toDisplayName(settings)}（参考：第 ${question.referenceString + 1} 弦 第 ${question.referenceFret} 品）"
+        is ScaleFindNotesQuestion -> "${question.keyRoot.toDisplayName(settings)} ${question.scaleType.suffix}"
+        is ChordProgressionQuestion -> question.chordName
     }
 }
 
