@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,6 +61,7 @@ fun FretboardQuestionView(
 ) {
     var vibratingNotes by remember { mutableStateOf(listOf<Pair<Int, Int>>()) }
     var vibrationTrigger by remember { mutableIntStateOf(0) }
+    val currentNotes by rememberUpdatedState(notes)
 
     GuitarFretboard(
         modifier = modifier
@@ -80,7 +82,7 @@ fun FretboardQuestionView(
                         this[stringIndex] = if (fretIndex == 0) ChordNote.Open else ChordNote.Fretted(fretIndex)
                     }
                 } else {
-                    notes.toMutableList().apply {
+                    currentNotes.toMutableList().apply {
                         val current = this[stringIndex]
                         this[stringIndex] = when {
                             current is ChordNote.Fretted && current.fret == fretIndex -> ChordNote.Muted

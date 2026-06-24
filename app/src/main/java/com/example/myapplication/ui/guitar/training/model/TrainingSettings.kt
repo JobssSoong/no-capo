@@ -66,7 +66,7 @@ data class TrainingSettings(
 
     fun showNoteNamesOnFretboard(mode: TrainingMode): Boolean {
         return when (mode) {
-            TrainingMode.NoteRecognition -> true
+            TrainingMode.NoteRecognition -> false
             TrainingMode.FindNote -> difficultyFor(mode) == Difficulty.Easy
             TrainingMode.ChordRecognition -> difficultyFor(mode) == Difficulty.Easy
             TrainingMode.MarkChord -> true

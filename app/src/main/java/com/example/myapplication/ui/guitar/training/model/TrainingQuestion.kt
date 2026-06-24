@@ -38,13 +38,14 @@ data class FindNoteQuestion(
 ) : TrainingQuestion(TrainingMode.FindNote, tuning) {
     override fun check(answer: UserAnswer): Boolean {
         val notes = (answer as? UserAnswer.Fretboard)?.notes ?: return false
-        val fretted = notes
+        val selected = notes
             .mapIndexedNotNull { index, note ->
-                (note as? ChordNote.Fretted)?.fret?.let { index to it }
-                    ?: (note as? ChordNote.Open)?.let { index to 0 }
+                note.fretOrNull()?.let { index to it }
             }
             .filter { it.first == stringIndex }
-        return fretted.any { it.second == correctFret }
+        return selected.any { (selectedString, fret) ->
+            (tuning.pitchClasses[selectedString] + fret) % 12 == pitchClass
+        }
     }
 }
 

@@ -430,6 +430,8 @@ fun GuitarFretboard(
     val ebonyTexture = rememberEbonyTexture()
     var animatingNotes by remember { mutableStateOf(listOf<Pair<Int, Int>>()) }
     val currentVibratingNotes by rememberUpdatedState(vibratingNotes)
+    val currentOnFretTapped by rememberUpdatedState(onFretTapped)
+    val currentOnPlayNote by rememberUpdatedState(onPlayNote)
 
     LaunchedEffect(vibrationTrigger) {
         if (vibrationTrigger > 0 && currentVibratingNotes.isNotEmpty()) {
@@ -488,8 +490,8 @@ fun GuitarFretboard(
                     )
 
                     if (hitFret != -1 && hitString != -1 && hitFret.toFloat() in startFret..endFret) {
-                        onPlayNote(hitString, hitFret)
-                        onFretTapped(hitString, hitFret)
+                        currentOnPlayNote(hitString, hitFret)
+                        currentOnFretTapped(hitString, hitFret)
                     }
                 }
             }
