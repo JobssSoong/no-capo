@@ -143,7 +143,8 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 CheckInScreen(
                     tuning = tuning,
                     audioSettings = audioSettings,
-                    settings = trainingSettings
+                    settings = trainingSettings,
+                    onSettingsChange = { trainingSettings = it }
                 )
             }
             composable(MainRoute.Fretboard.route) {
@@ -156,7 +157,8 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 TrainingHubScreen(
                     tuning = tuning,
                     audioSettings = audioSettings,
-                    settings = trainingSettings
+                    settings = trainingSettings,
+                    onSettingsChange = { trainingSettings = it }
                 )
             }
             composable(MainRoute.Profile.route) {
