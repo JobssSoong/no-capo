@@ -382,42 +382,40 @@ private fun DifficultySelector(
     onSelect: (Difficulty) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val trackColor = CardBackground
-    val selectorColor = when (selected) {
-        Difficulty.Easy -> Color(0xFF43A047)
-        Difficulty.Medium -> Color(0xFF1E88E5)
-        Difficulty.Hard -> Color(0xFFD32F2F)
-    }
-
     Row(
-        modifier = modifier
-            .width(138.dp)
-            .height(26.dp)
-            .background(trackColor, RoundedCornerShape(13.dp))
-            .padding(2.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Difficulty.entries.forEachIndexed { index, difficulty ->
+        Difficulty.entries.forEach { difficulty ->
             val isSelected = difficulty == selected
-            val shape = when (index) {
-                0 -> RoundedCornerShape(topStart = 11.dp, bottomStart = 11.dp)
-                Difficulty.entries.lastIndex -> RoundedCornerShape(topEnd = 11.dp, bottomEnd = 11.dp)
-                else -> RoundedCornerShape(4.dp)
+            val color = when (difficulty) {
+                Difficulty.Easy -> Color(0xFF43A047)
+                Difficulty.Medium -> Color(0xFF1E88E5)
+                Difficulty.Hard -> Color(0xFFD32F2F)
             }
             Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .background(if (isSelected) selectorColor else Color.Transparent, shape)
+                    .height(30.dp)
+                    .background(
+                        color = if (isSelected) color else Color.Transparent,
+                        shape = RoundedCornerShape(15.dp)
+                    )
+                    .then(
+                        if (!isSelected) Modifier.border(
+                            width = 1.dp,
+                            color = CardText.copy(alpha = 0.25f),
+                            shape = RoundedCornerShape(15.dp)
+                        ) else Modifier
+                    )
                     .clickable { onSelect(difficulty) }
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = 14.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = difficulty.label,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) Color.White else CardText.copy(alpha = 0.7f)
+                    color = if (isSelected) Color.White else CardText.copy(alpha = 0.85f)
                 )
             }
         }
