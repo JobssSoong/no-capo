@@ -390,9 +390,9 @@ private fun DifficultySelector(
         Difficulty.entries.forEach { difficulty ->
             val isSelected = difficulty == selected
             val color = when (difficulty) {
-                Difficulty.Easy -> Color(0xFF43A047)
-                Difficulty.Medium -> Color(0xFF1E88E5)
-                Difficulty.Hard -> Color(0xFFD32F2F)
+                Difficulty.Easy -> Color(0xFF3D6B40)
+                Difficulty.Medium -> Color(0xFF3A6FA3)
+                Difficulty.Hard -> Color(0xFF9B4545)
             }
             Box(
                 modifier = Modifier

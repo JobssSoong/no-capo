@@ -3,6 +3,7 @@ package com.example.myapplication.ui.guitar.profile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,13 +14,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -129,13 +130,52 @@ fun TrainingSettingsPanel(
                 style = MaterialTheme.typography.bodyMedium,
                 color = CardText
             )
-            Slider(
-                value = settings.dailyQuestionCount.toFloat(),
-                onValueChange = { onSettingsChange(settings.copy(dailyQuestionCount = it.toInt())) },
-                valueRange = 10f..100f,
-                steps = 8,
-                modifier = Modifier.fillMaxWidth()
+            QuestionCountSelector(
+                selected = settings.dailyQuestionCount,
+                onSelect = { onSettingsChange(settings.copy(dailyQuestionCount = it)) }
             )
+        }
+    }
+}
+
+@Composable
+private fun QuestionCountSelector(
+    selected: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val counts = listOf(10, 20, 30, 40, 50, 60, 80, 100)
+    Row(
+        modifier = modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        counts.forEach { count ->
+            val isSelected = count == selected
+            Box(
+                modifier = Modifier
+                    .height(30.dp)
+                    .background(
+                        color = if (isSelected) CardText else Color.Transparent,
+                        shape = RoundedCornerShape(15.dp)
+                    )
+                    .then(
+                        if (!isSelected) Modifier.border(
+                            width = 1.dp,
+                            color = CardText.copy(alpha = 0.25f),
+                            shape = RoundedCornerShape(15.dp)
+                        ) else Modifier
+                    )
+                    .clickable { onSelect(count) }
+                    .padding(horizontal = 14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = count.toString(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isSelected) Color.White else CardText.copy(alpha = 0.85f)
+                )
+            }
         }
     }
 }
@@ -154,9 +194,9 @@ private fun DifficultySelector(
         Difficulty.entries.forEach { difficulty ->
             val isSelected = difficulty == selected
             val color = when (difficulty) {
-                Difficulty.Easy -> Color(0xFF43A047)
-                Difficulty.Medium -> Color(0xFF1E88E5)
-                Difficulty.Hard -> Color(0xFFD32F2F)
+                Difficulty.Easy -> Color(0xFF3D6B40)
+                Difficulty.Medium -> Color(0xFF3A6FA3)
+                Difficulty.Hard -> Color(0xFF9B4545)
             }
             Box(
                 modifier = Modifier
